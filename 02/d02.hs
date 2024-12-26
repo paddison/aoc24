@@ -2,36 +2,41 @@
 
 main :: IO ()
 main = do
-  input <- readFile "dataAll"
+  input <- readFile "../data/02"
   print $ countSafeReports $ parseInput input
+  print $ countSafeReportsP2 $ parseInput input
 
-parseInput :: String -> [[Int]]
-parseInput input = [[read num | num <- words line] | line <- lines input]
+parseInput :: String -> [[Integer]]
+parseInput input =[map read (words line) | line <- lines input]
 
-isValidList :: [Int] -> Bool
+isValidList :: [Integer] -> Bool
 isValidList (a : b : rest) = case compare a b of
   LT -> isAscending (a : b : rest)
   GT -> isDescending (a : b : rest)
   EQ -> False
 
-isAscending :: [Int] -> Bool
+isValidListTolerance :: [Integer] -> Int -> Int -> Bool
+isValidListTolerance  xs l i
+  | i == l = False
+  | otherwise = let ys = (take i xs ++ drop (i + 1) xs) 
+                in isValidList ys || isValidListTolerance xs l (i + 1)
+
+isAscending :: [Integer] -> Bool
 isAscending [a] = True
 isAscending (a : b : rest)
   | a < b && abs (a - b) <= 3 = isAscending (b : rest)
   | otherwise = False
 
-isDescending :: [Int] -> Bool
+isDescending :: [Integer] -> Bool
 isDescending [a] = True
 isDescending (a : b : rest)
   | a > b && abs (a - b) <= 3 = isDescending (b : rest)
   | otherwise = False
 
-countSafeReports :: [[Int]] -> Int
+countSafeReports :: [[Integer]] -> Integer
 countSafeReports = foldr (\ x -> (+) (if isValidList x then 1 else 0)) 0
 
-verify :: [[Int]] -> IO ()
-verify [] = print "done"
-verify (x : xs) = do
-  print $ isValidList x
-  print x
-  verify xs
+countSafeReportsP2 :: [[Integer]] -> Integer
+countSafeReportsP2 = foldr (\ x -> (+) (if isValidList x || isValidListTolerance x (length x) 0 then 1 else 0)) 0
+
+
